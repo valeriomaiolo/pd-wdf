@@ -25,6 +25,8 @@ k = find(OutHiPD);
 OutHiPD = OutHiPD(k(1)-1:end);
 OutHiPD = flipud(OutHiPD);
 OutHiPD(numel(Vin)) = 0;
+OutHiPD(numel(Vin)) = 0;
+%Vin(numel(OutHiPD)) = 0;
 
 k = find(OutLowPD);
 OutLowPD = OutLowPD(k(1)-1:end);
@@ -35,7 +37,6 @@ OutLowPD = flipud(OutLowPD);
 OutLowPD(numel(Vin)) = 0;
 %OutLowPD(numel(Vin)) = 0;
 Vin(numel(OutLowPD)) = 0;
-OutHiPD(numel(Vin)) = 0;
 
 %% Sampling Period
 Ts = 1/Fs;
