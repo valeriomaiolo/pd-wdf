@@ -1,0 +1,95 @@
+clear all
+close all
+clc
+
+%% Import Input Audio Signal
+[Vin,~] = audioread('ExpSweep.wav');
+
+%% PD Files for Ground-Truth
+[OutLowPD, FsPD] = audioread('voutpd2.wav');
+
+TsPD = 1/FsPD;
+
+%% Sampling frequency (to be varied: FsLTSpice/downSampFact, with downSampFact={4,3,2})
+downSampFact = 1;
+Fs = FsPD/downSampFact;
+
+%% Downsample Input Signal
+Vin = Vin([1:downSampFact:end]);
+
+k = find(OutLowPD);
+OutLowPD = OutLowPD(k(1)-1:end);
+OutLowPD = flipud(OutLowPD);
+k = find(OutLowPD);
+OutLowPD = OutLowPD(k(1)-1:end);
+OutLowPD = flipud(OutLowPD);
+Vin(numel(OutLowPD)) = 0;
+
+%% Sampling Period
+Ts = 1/Fs;
+
+%% Number of Samples
+Nsamp = length(Vin);
+
+%% Simulated time
+tstop = Nsamp*Ts;
+
+%% Parameters of Dynamic Element
+C = 100*10^(-6);
+
+%% Resistive Parameters
+R = 300;
+Rin = 10^(-6);
+
+%% WDF setting of free parameters (adaptation conditions)
+Z1 = Rin;
+Z2 = R;
+Z3 = Ts/(2*C);
+
+%% Computation of Scattering Matrices
+Bser = [-1,1,1];
+Zser = diag([Z1,Z2,Z3]);
+Sser = eye(3) - 2*Zser*Bser'*inv(Bser*Zser*Bser')*Bser;
+
+%% Initialization of Waves
+a = [0;0;0];
+b = [0;0;0];
+
+%% Initialize Output Signal
+VoutLPF = zeros(size(Vin));
+VoutHPF = zeros(size(Vin));
+
+ii=0;
+while (ii<Nsamp)
+    ii=ii+1;
+    %% Manage Dynamic Elements
+    a(3) = b(3);
+
+    %%
+    a(1) = Vin(ii);
+
+    %%
+    b = Sser*a;
+
+    %% Read Output
+    VoutLPF(ii) = (a(3)+b(3))/2;
+    VoutHPF(ii) = (a(2)+b(2))/2;
+end
+
+%% Output Plots
+figure
+set(gcf, 'Color', 'w');
+plot(TsPD*[1:length( OutLowPD)],OutLowPD,'r','Linewidth',2); hold on;
+plot(Ts*[1:Nsamp],VoutLPF,'b--','Linewidth',1); grid on; xlim([0,tstop]);
+xlabel('time [seconds]','Fontsize',16,'interpreter','latex');
+ylabel('$V_{\mathrm{outLow}}$ [V]','Fontsize',16,'interpreter','latex');
+legend('LTspice','WDF','Fontsize',16,'interpreter','latex');
+title('Output Signals','Fontsize',18,'interpreter','latex');
+
+%% Error Plots
+figure
+set(gcf, 'Color', 'w');
+plot(Ts*[1:Nsamp],OutLowPD([1:downSampFact:end])-VoutLPF,'k','Linewidth',1);grid on; xlim([0,tstop]);
+xlabel('time [seconds]','Fontsize',16,'interpreter','latex');
+ylabel('$E_{\mathrm{outLow}}$ [V]','Fontsize',16,'interpreter','latex');
+title(['Error Signals. $F_{\mathrm{s}}=$ ',num2str(Fs),' Hz'],'Fontsize',18,'interpreter','latex');
