@@ -1,2 +1,2 @@
 # pd-wdf
-Wave Digital Filters in Pure Data
+Towards Wave Digital Filters in Pure Data
