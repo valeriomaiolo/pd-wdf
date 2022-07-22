@@ -1,7 +1,7 @@
 # pd-wdf
-Towards VA modeling through Wave Digital Filters in Pure Data.
+Towards Virtual Analog modeling through Wave Digital Filters in Pure Data.
 
-Here, a simple example of RC low-pass filter in which a 3X3 scattering matrix is involved. 
+Here, a simple example of an RC low-pass filter in which a 3X3 scattering matrix is involved. 
 
 Parameters, such as capacitance and resistance, are available to be changed in real-time.
 
